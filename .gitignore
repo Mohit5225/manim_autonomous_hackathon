@@ -1,0 +1,11 @@
+.env
+.vscode/
+google_credentials.json
+__pycache__/
+manim_env/
+media/
+output/
+output_audio/
+testing_local/
+good videos/
+.github/
