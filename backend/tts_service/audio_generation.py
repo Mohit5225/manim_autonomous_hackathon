@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from tts_service.google_tts_client import GoogleTTSClient
+from .google_tts_client import GoogleTTSClient
 from typing import Tuple, List
 from google.cloud import texttospeech
 
