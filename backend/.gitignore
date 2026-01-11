@@ -8,5 +8,10 @@ media/
 output/
 output_audio/
 testing_local/
-good videos/
+good_videos/
 .github/
+
+# Large video files (sample outputs)
+*.mp4
+*.avi
+*.mov

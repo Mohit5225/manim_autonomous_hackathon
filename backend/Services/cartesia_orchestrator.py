@@ -171,6 +171,12 @@ class CartesiaVideoOrchestrator:
         Returns:
             Dict with paths and status info
         """
+        if verbose:
+            print("\n" + "⚡"*30)
+            print("🎬 INITIALIZING CARTESIA ORCHESTRATOR PIPELINE")
+            print(f"🎬 Concept: {concept}")
+            print("⚡"*30)
+
         result = {
             "success": False,
             "concept": concept,
@@ -293,11 +299,12 @@ class CartesiaVideoOrchestrator:
                 print(f"✅ Beat timings: {beat_timings}")
             
             # ═══════════════════════════════════════════════════════════════════
-            # STEP 3: Generate Timestamp-Aware Manim Code
+            # STEP 3: Generate Manim Code (The Architect's Brain)
             # ═══════════════════════════════════════════════════════════════════
             if verbose:
                 print("\n" + "=" * 60)
-                print("STEP 3: Generating Manim Code...")
+                print("STEP 3: Generating Timestamp-Aware Manim Code...")
+                print(f"🧠 [A.I.] Calling Gemini to translate lesson plan into Manim visuals")
                 print("=" * 60)
             
             # Import here to avoid circular imports
@@ -327,32 +334,52 @@ class CartesiaVideoOrchestrator:
                 print(f"✅ Code length: {len(manim_code)} chars")
             
             # ═══════════════════════════════════════════════════════════════════
-            # STEP 4: Final Render (code was already validated in Step 3)
+            # STEP 4: Final Manim Render (Turning code into motion)
             # ═══════════════════════════════════════════════════════════════════
             if verbose:
                 print("\n" + "=" * 60)
-                print("STEP 4: Final Video Render...")
+                print("STEP 4: Final Video Render (Executing Manim Engine)...")
                 print("=" * 60)
             
-            video_path, render_error = render_manim_code(manim_code, "GeneratedScene")
+            # OPTIMIZATION: If generation_status already returned a valid video path (from the trial render),
+            # we can skip re-rendering if we trust it, OR we just use the path it gave us.
+            # But render_manim_code in validation is usually low quality. We might want high quality here.
+            # For now, let's keep it safe: re-render to ensure we have the file.
+            
+            if "video_path" in generation_status and generation_status["video_path"]:
+                 # We have a path from validation!
+                 video_path = generation_status["video_path"]
+                 render_error = None
+                 if not os.path.exists(video_path):
+                     print("⚠️ Validated video file missing, re-rendering...")
+                     video_path, render_error = render_manim_code(manim_code, "GeneratedScene")
+            else:
+                 video_path, render_error = render_manim_code(manim_code, "GeneratedScene")
             
             if render_error:
                 result["error"] = f"Manim render failed: {render_error}"
                 if verbose:
                     print(f"❌ Render error: {render_error[:200]}...")
                 return result
-            
-            result["video_path"] = video_path
+
+            # Double check existence
+            if not video_path:
+                 result["error"] = "Render reported success but returned empty video path"
+                 return result
+
+            result["video_path"] = str(video_path) # Ensure it's a string
             
             if verbose:
                 print(f"✅ Video rendered: {video_path}")
             
             # ═══════════════════════════════════════════════════════════════════
-            # STEP 5: Overlay Audio on Video
+            # STEP 5: Creative Fusion (Overlay Audio on Video)
             # ═══════════════════════════════════════════════════════════════════
             if verbose:
                 print("\n" + "=" * 60)
-                print("STEP 5: Overlaying Audio...")
+                print("STEP 5: Final Fusion - Overlaying Audio on Video...")
+                print(f"   🔊 Source Audio: {result['audio_path']}")
+                print(f"   🎬 Source Video: {result['video_path']}")
                 print("=" * 60)
             
             final_video_path = os.path.join(self.output_dir, "final_video_cartesia.mp4")

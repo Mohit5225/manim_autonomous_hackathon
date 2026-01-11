@@ -163,6 +163,12 @@ class VideoOrchestrator:
         Returns:
             Dict with paths and status info
         """
+        if verbose:
+            print("\n" + "🌐"*30)
+            print("🎬 INITIALIZING STANDARD (GOOGLE) ORCHESTRATOR PIPELINE")
+            print(f"🎬 Concept: {concept}")
+            print("🌐"*30)
+
         result = {
             "success": False,
             "concept": concept,

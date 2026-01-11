@@ -735,6 +735,11 @@ def extract_error_location(error_msg: str) -> dict:
 def get_code_context(code: str, error_line: int, context_lines: int = 10) -> str:
     """Get only the relevant code around the error (token-efficient)."""
     lines = code.split('\n')
+    
+    # DEFENSIVE: If error_line is None, return first 20 lines instead of crashing
+    if error_line is None:
+        return '\n'.join([f"    {i+1:3d} | {lines[i]}" for i in range(min(20, len(lines)))])
+    
     start = max(0, error_line - context_lines)
     end = min(len(lines), error_line + context_lines)
     
@@ -809,6 +814,11 @@ def generate_manim_code_from_gemini(
     if error_context:
         # --- RETRY MODE: Aggressive regeneration with full context ---
         error_info = extract_error_location(error_context['error'])
+        
+        # DEFENSIVE: Ensure error_info has a line number
+        if error_info.get('line') is None:
+            error_info['line'] = 1  # Default to line 1 if parsing failed
+        
         failed_code_snippet = (
             get_code_context(error_context['code'], error_info['line'])
             if error_context.get('code') else "No code context."
@@ -1156,7 +1166,8 @@ def generate_manim_code_with_timestamps(
         is_valid, warnings = validate_manim_code(code)
         
         # Test render to check for runtime errors
-        video_path, error = render_manim_code(code, "GeneratedScene")
+        # CRITICAL: Pass quality="l" for fast check, but ensure we return correct path
+        temp_video_path, error = render_manim_code(code, "GeneratedScene")
         
         if not error:
             # ✅ SUCCESS: Save to generated_scene.py
@@ -1170,7 +1181,8 @@ def generate_manim_code_with_timestamps(
             return code, {
                 "success": True,
                 "attempt": attempt,
-                "saved_path": saved_path
+                "saved_path": saved_path,
+                "video_path": temp_video_path # Pass the video path back!
             }
         
         # ❌ FAILURE: Save to {attempt}_trial_failed.py
